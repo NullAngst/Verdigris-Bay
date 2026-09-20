@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Verdigris Bay — Survival Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* -------------------------------------------------------------------
+     PALETTE. Every colour is defined per-theme so text never inherits a
+     value meant for a different background. Body text sits at ~13:1 on
+     its surface in both themes; muted text stays above ~7:1.
+     ------------------------------------------------------------------- */
+  :root {
+    color-scheme: light dark;
+    /* light (default) */
+    --bg:        #e7e4d6;
+    --bg-grain:  rgba(20,22,15,0.045);
+    --surface:   #f4f2e9;
+    --surface-2: #eceadf;
+    --ink:       #14160f;
+    --ink-soft:  #33362b;
+    --muted:     #55584b;
+    --line:      #b9b6a4;
+    --line-soft: #cfccbc;
+    --cyan:      #0a6f8c;
+    --magenta:   #a81f63;
+    --amber:     #8a530c;
+    --green:     #1f6f43;
+    --red:       #a3272b;
+    --verd:      #0d6b5b;
+    --code-bg:   #e4e1d2;
+    --hero-bg:   #12160f;
+    --hero-ink:  #eceadd;
+    --hero-accent:#4cc3a9;
+    --chip-bg:   #ddd9c8;
+    --shadow:    0 1px 0 rgba(0,0,0,0.06), 0 12px 30px rgba(20,30,20,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0c0e09;
+      --bg-grain:  rgba(220,255,220,0.028);
+      --surface:   #14180f;
+      --surface-2: #191d13;
+      --ink:       #e9e7d9;
+      --ink-soft:  #cdcbbc;
+      --muted:     #a6ab99;
+      --line:      #333726;
+      --line-soft: #262a1c;
+      --cyan:      #55e0ff;
+      --magenta:   #ff67ac;
+      --amber:     #ffb84d;
+      --green:     #5fe0a0;
+      --red:       #ff6b64;
+      --verd:      #4cc3a9;
+      --code-bg:   #10130c;
+      --hero-bg:   #090b07;
+      --hero-ink:  #eceadd;
+      --hero-accent:#4cc3a9;
+      --chip-bg:   #1c2015;
+      --shadow:    0 0 0 1px rgba(80,120,90,0.10), 0 14px 34px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #0c0e09;
+    --bg-grain:  rgba(220,255,220,0.028);
+    --surface:   #14180f;
+    --surface-2: #191d13;
+    --ink:       #e9e7d9;
+    --ink-soft:  #cdcbbc;
+    --muted:     #a6ab99;
+    --line:      #333726;
+    --line-soft: #262a1c;
+    --cyan:      #55e0ff;
+    --magenta:   #ff67ac;
+    --amber:     #ffb84d;
+    --green:     #5fe0a0;
+    --red:       #ff6b64;
+    --verd:      #4cc3a9;
+    --code-bg:   #10130c;
+    --hero-bg:   #090b07;
+    --hero-ink:  #eceadd;
+    --hero-accent:#4cc3a9;
+    --chip-bg:   #1c2015;
+    --shadow:    0 0 0 1px rgba(80,120,90,0.10), 0 14px 34px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html {
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background-color: var(--bg);
+    background-image:
+      repeating-linear-gradient(0deg, var(--bg-grain) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 70% at 85% -10%, rgba(13,107,91,0.14), transparent 60%);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 20px 96px; }
+
+  /* HERO */
+  header.hero {
+    background: var(--hero-bg);
+    color: var(--hero-ink);
+    border-bottom: 2px solid var(--hero-accent);
+    padding: calc(env(safe-area-inset-top, 0px) + 44px) 20px 40px;
+    margin-bottom: 8px;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 4px),
+      radial-gradient(90% 120% at 100% 0%, rgba(76,195,169,0.18), transparent 55%);
+  }
+  header.hero .inner { max-width: 940px; margin: 0 auto; }
+  header.hero .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    letter-spacing: .32em; text-transform: uppercase;
+    font-size: .74rem; color: var(--hero-accent); margin: 0 0 12px;
+  }
+  header.hero h1 {
+    font-family: "Oswald", sans-serif; font-weight: 700;
+    font-size: clamp(2.3rem, 7vw, 4rem); line-height: .98;
+    letter-spacing: .01em; margin: 0; text-transform: uppercase;
+  }
+  header.hero h1 .bay { color: var(--hero-accent); }
+  header.hero p.tag {
+    color: #c8c6b6; font-size: 1.02rem; margin: 16px 0 0; max-width: 60ch;
+  }
+
+  /* THEME TOGGLE */
+  .toggle {
+    position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 14px;
+    z-index: 20;
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 13px; cursor: pointer; box-shadow: var(--shadow);
+  }
+  .toggle:hover { border-color: var(--verd); color: var(--verd); }
+
+  /* NAV */
+  nav.toc {
+    margin: 22px 0 30px; padding: 16px 18px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow);
+  }
+  nav.toc h2 {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    text-transform: uppercase; letter-spacing: .28em; color: var(--muted);
+    margin: 0 0 12px;
+  }
+  nav.toc ol {
+    margin: 0; padding: 0; list-style: none;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 4px 22px;
+  }
+  nav.toc a {
+    color: var(--ink-soft); text-decoration: none;
+    font-size: .95rem; display: block; padding: 3px 0;
+    border-bottom: 1px solid transparent;
+  }
+  nav.toc a:hover { color: var(--verd); border-bottom-color: var(--verd); }
+  nav.toc a .n {
+    font-family: "IBM Plex Mono", monospace; color: var(--magenta);
+    font-size: .82rem; margin-right: 8px;
+  }
+
+  section { margin: 40px 0; scroll-margin-top: 24px; }
+  h2.sec {
+    font-family: "Oswald", sans-serif; font-weight: 600;
+    font-size: 1.7rem; text-transform: uppercase; letter-spacing: .02em;
+    color: var(--ink); margin: 0 0 6px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  h2.sec .num {
+    font-family: "IBM Plex Mono", monospace; font-size: 1rem;
+    color: var(--verd); font-weight: 700;
+  }
+  h2.sec::after {
+    content: ""; flex: 1; height: 2px;
+    background: linear-gradient(90deg, var(--line), transparent);
+    align-self: center;
+  }
+  h3 {
+    font-family: "Oswald", sans-serif; font-weight: 600; font-size: 1.18rem;
+    letter-spacing: .01em; color: var(--cyan); margin: 26px 0 8px;
+  }
+  p { margin: 10px 0; }
+  a { color: var(--verd); }
+  strong { color: var(--ink); font-weight: 600; }
+  em { color: var(--ink-soft); }
+
+  .lead { font-size: 1.06rem; color: var(--ink-soft); }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", monospace;
+    background: var(--code-bg); color: var(--ink);
+    padding: 1px 6px; border-radius: 5px; font-size: .88em;
+    border: 1px solid var(--line-soft);
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line);
+    border-radius: 10px; padding: 15px 17px; overflow-x: auto;
+    font-family: "IBM Plex Mono", monospace; font-size: .86rem;
+    line-height: 1.55; color: var(--ink); box-shadow: var(--shadow);
+  }
+  pre code { background: none; border: none; padding: 0; }
+
+  /* CALLOUTS */
+  .box {
+    border: 1px solid var(--line); border-left: 4px solid var(--verd);
+    background: var(--surface); border-radius: 10px;
+    padding: 14px 18px; margin: 18px 0; box-shadow: var(--shadow);
+  }
+  .box.warn   { border-left-color: var(--red); }
+  .box.tip    { border-left-color: var(--cyan); }
+  .box.note   { border-left-color: var(--amber); }
+  .box .lbl {
+    font-family: "IBM Plex Mono", monospace; font-size: .7rem;
+    text-transform: uppercase; letter-spacing: .2em; color: var(--muted);
+    display: block; margin-bottom: 4px;
+  }
+
+  /* TABLES */
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 16px 0; }
+  table {
+    border-collapse: collapse; width: 100%; min-width: 460px;
+    font-size: .92rem; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  caption {
+    text-align: left; font-family: "IBM Plex Mono", monospace;
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .18em;
+    color: var(--muted); padding: 0 0 8px;
+  }
+  th, td { padding: 9px 13px; text-align: left; vertical-align: top; }
+  thead th {
+    background: var(--surface-2); color: var(--ink);
+    font-family: "Oswald", sans-serif; font-weight: 600; font-size: .82rem;
+    text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 2px solid var(--line);
+  }
+  tbody tr + tr td { border-top: 1px solid var(--line-soft); }
+  tbody tr:nth-child(even) td { background: var(--surface-2); }
+  td.mono, th.mono { font-family: "IBM Plex Mono", monospace; }
+  td .k { color: var(--cyan); font-family: "IBM Plex Mono", monospace; font-weight: 600; }
+
+  .chip {
+    display: inline-block; font-family: "IBM Plex Mono", monospace;
+    font-size: .78rem; padding: 1px 8px; border-radius: 999px;
+    background: var(--chip-bg); border: 1px solid var(--line);
+    color: var(--ink-soft); margin: 1px 2px;
+  }
+  .chip.cyan   { color: var(--cyan);   border-color: var(--cyan); }
+  .chip.mag    { color: var(--magenta);border-color: var(--magenta); }
+  .chip.amber  { color: var(--amber);  border-color: var(--amber); }
+  .chip.green  { color: var(--green);  border-color: var(--green); }
+  .chip.red    { color: var(--red);    border-color: var(--red); }
+
+  ul.tight, ol.tight { margin: 10px 0; padding-left: 22px; }
+  ul.tight li, ol.tight li { margin: 5px 0; }
+  ul.plain { list-style: none; padding-left: 0; }
+  ul.plain li { padding-left: 22px; position: relative; margin: 6px 0; }
+  ul.plain li::before {
+    content: "\25B8"; position: absolute; left: 4px; color: var(--verd);
+  }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 16px; margin: 16px 0; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 15px 17px; box-shadow: var(--shadow);
+  }
+  .card h4 {
+    margin: 0 0 6px; font-family: "Oswald", sans-serif; font-weight: 600;
+    font-size: 1.05rem; color: var(--magenta);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card .role-icon { color: var(--verd); font-size: 1.1em; }
+  .card .stats {
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem;
+    color: var(--ink-soft); margin: 6px 0;
+  }
+  .card .pass { color: var(--muted); font-size: .92rem; }
+  .card .pass b { color: var(--amber); }
+
+  /* HUD MOCKUP */
+  .hud {
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem;
+    background: var(--hero-bg); color: var(--hero-ink);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; box-shadow: var(--shadow);
+    line-height: 1.5;
+  }
+  .hud .cy { color: #55e0ff; } .hud .mg { color: #ff67ac; }
+  .hud .am { color: #ffb84d; } .hud .gr { color: #5fe0a0; }
+  .hud .rd { color: #ff6b64; } .hud .vd { color: #4cc3a9; }
+  .hud .mu { color: #8f9482; } .hud b { color: #f5f3e6; }
+
+  footer {
+    margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: .88rem;
+  }
+  .kbd {
+    font-family: "IBM Plex Mono", monospace; font-size: .82em;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; color: var(--ink);
+  }
+  hr.soft { border: none; border-top: 1px solid var(--line-soft); margin: 30px 0; }
+</style>
+</head>
+<body>
+<button class="toggle" id="themeToggle" type="button">&#9680; theme</button>
+
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">Survival Briefing &middot; Field Manual</p>
+    <h1>Verdigris&nbsp;<span class="bay">Bay</span></h1>
+    <p class="tag">A procedurally generated cyberpunk survival RPG that runs in your terminal.
+      Everything below is how the city actually works: the dice, the chrome, the wire, and
+      the six factions who will remember what you did. Read what you need, then go down to the water.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#start"><span class="n">00</span>Getting Started</a></li>
+      <li><a href="#interface"><span class="n">01</span>The Interface &amp; HUD</a></li>
+      <li><a href="#loop"><span class="n">02</span>The Turn Loop</a></li>
+      <li><a href="#checks"><span class="n">03</span>Checks &amp; Dice</a></li>
+      <li><a href="#attributes"><span class="n">04</span>Attributes &amp; Skills</a></li>
+      <li><a href="#roles"><span class="n">05</span>Roles</a></li>
+      <li><a href="#combat"><span class="n">06</span>Combat</a></li>
+      <li><a href="#health"><span class="n">07</span>Damage, Armour &amp; Wounds</a></li>
+      <li><a href="#chrome"><span class="n">08</span>Cyberware &amp; Coherence</a></li>
+      <li><a href="#net"><span class="n">09</span>Netrunning</a></li>
+      <li><a href="#world"><span class="n">10</span>Factions, Rep &amp; Heat</a></li>
+      <li><a href="#city"><span class="n">11</span>The City &amp; Gear</a></li>
+      <li><a href="#progress"><span class="n">12</span>Advancement &amp; Endings</a></li>
+      <li><a href="#commands"><span class="n">13</span>Command Reference</a></li>
+    </ol>
+  </nav>
+
+  <!-- 00 -->
+  <section id="start">
+    <h2 class="sec"><span class="num">00</span>Getting Started</h2>
+    <p class="lead">You need Python 3.10 or newer. Nothing else. No <code>pip install</code>, no
+      virtual environment, no compiled extensions.</p>
+    <pre><code>python3 play.py                      <span style="color:var(--muted)"># opens the character browser</span>
+python3 play.py mysave.db            <span style="color:var(--muted)"># load/create a specific save file</span>
+python3 play.py mysave.db --seed 42  <span style="color:var(--muted)"># reproducible world generation</span></code></pre>
+    <p>Run with no arguments and you get a <strong>character browser</strong>: every saved run,
+      listed with its name, handle, role, level, district, turn, difficulty and whether it's still
+      alive. Pick one to load it, or start a new character. New characters are saved under a
+      <code>saves/</code> folder, one file each, named after the character. The game autosaves as you
+      play; you never have to remember to.</p>
+    <div class="box tip">
+      <span class="lbl">Leaving the game</span>
+      Type <code>menu</code> at the prompt — or hit <span class="kbd">Ctrl+C</span> anywhere, even
+      mid-fight — to open the menu: Resume, Change theme, Save now, or Save and quit. Your world is
+      always saved; combat is the only thing you'd abandon by bailing out of a fight.
+    </div>
+    <div class="box tip">
+      <span class="lbl">Accessibility &amp; terminals</span>
+      Colour and Unicode are auto-detected and degrade cleanly. If glyphs or colours render
+      badly, set an environment variable before launching:
+      <ul class="tight">
+        <li><code>NO_COLOR=1</code> &mdash; turn off all colour (monochrome text).</li>
+        <li><code>VERDIGRIS_ASCII=1</code> &mdash; use the plain ASCII glyph set instead of Unicode.</li>
+        <li><code>VERDIGRIS_FORCE_COLOR=1</code> &mdash; force colour even when output is piped.</li>
+      </ul>
+      Colour is disabled automatically when output is not a terminal or when <code>TERM=dumb</code>.
+      You can also pick the <strong>Mono</strong> theme in-game for the same effect.
+    </div>
+
+    <h3>Difficulty</h3>
+    <p>You choose a difficulty when you make a character. It shapes your starting stats, your
+      loadout, and how often the city comes for you — nothing is locked to a role.</p>
+    <div class="scroll">
+      <table>
+        <caption>Difficulty</caption>
+        <thead><tr><th>Level</th><th>Stats</th><th>Credits</th><th>Starting kit</th><th>Ambush rate</th></tr></thead>
+        <tbody>
+          <tr><td class="k" style="color:var(--green)">Easy</td><td class="mono">+1 all</td><td class="mono">2,800</td><td>Extra pistol, blade, spare vest, 3 trauma kits, 2 stims, lots of ammo</td><td class="mono">low</td></tr>
+          <tr><td class="k">Normal</td><td class="mono">base</td><td class="mono">1,200</td><td>Role kit + a backup blade, a trauma kit and a stim</td><td class="mono">medium</td></tr>
+          <tr><td class="k" style="color:var(--amber)">Hard</td><td class="mono">&minus;1 all</td><td class="mono">500</td><td>Role kit only, little ammo</td><td class="mono">high</td></tr>
+          <tr><td class="k" style="color:var(--red)">Brutal</td><td class="mono">&minus;2 all</td><td class="mono">200</td><td>Role kit only, no spare ammo; enemies hit harder</td><td class="mono">very high</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>If you were getting jumped every few steps on the old build: encounters are now tuned down
+      across the board and driven by difficulty, so Easy and Normal give you room to walk, look and
+      breathe between fights.</p>
+
+    <h3>Themes</h3>
+    <p>The whole HUD can be reskinned. Pick a theme from the browser, the in-game <code>menu</code>,
+      or the <code>theme</code> command; your choice is saved with the character. Six to choose from:</p>
+    <div class="scroll">
+      <table>
+        <caption>Themes</caption>
+        <thead><tr><th>Theme</th><th>Look</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Neon Noir</td><td>The default — cyan, magenta and amber on black.</td></tr>
+          <tr><td class="k">Vaporwave</td><td>80s pastel: hot pink, lavender and teal.</td></tr>
+          <tr><td class="k">Matrix</td><td>Green phosphor. Everything is the wire.</td></tr>
+          <tr><td class="k">Amber CRT</td><td>A dead terminal's warm monochrome glow.</td></tr>
+          <tr><td class="k">Ice</td><td>Cold blues and white.</td></tr>
+          <tr><td class="k">Mono</td><td>No colour at all. Plain text.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 01 -->
+  <section id="interface">
+    <h2 class="sec"><span class="num">01</span>The Interface &amp; HUD</h2>
+    <p>Before every command you'll see a <strong>status bar</strong>: a live readout of the things
+      that can kill you. Each meter is a gauge plus a number, colour-graded green &rarr; amber &rarr; red as it
+      approaches danger. On a colour terminal it looks like this:</p>
+    <div class="hud">
+<span class="vd">&#9581;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9583;</span>
+  <b>Vex Kader</b> <span class="mg">"Halfmast"</span> <span class="mu">&middot;</span> <span class="cy">ENFORCER</span>              <span class="am">&#9873;</span> L3   <span class="vd">Sable Row</span>   <span class="mu">T-96</span>
+  <span class="gr">&#9829;</span> HP <span class="gr">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</span> <b>26/34</b>          <span class="am">&#9672;</span> COH <span class="am">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</span> <span class="am">71</span> <span class="mu">Drifting</span>
+  <span class="am">&#9678;</span> TRACE <span class="am">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</span> <span class="am">58</span> <span class="mu">Tracked</span>       <span class="rd">&#9650;</span> HEAT <span class="rd">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</span> <span class="rd">80</span>   <span class="am">&#164;</span> <b>1,240cr</b>
+  <span class="am">&#9888; WOUNDED</span>   <span class="mu">&middot;</span> <span class="am">bleeding(3)</span>   <span class="gr">&#10022; 3 skill pts (train)</span>
+<span class="vd">&#9584;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9585;</span>
+    </div>
+    <p style="margin-top:14px">Reading it, left to right and top to bottom:</p>
+    <div class="scroll">
+      <table>
+        <caption>HUD readout</caption>
+        <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Name "Handle" &middot; ROLE</td><td>Who you are. Your handle is what the street knows you by.</td></tr>
+          <tr><td class="mono">&#9873; L3 &middot; District &middot; T-turn</td><td>Level, current district, and the world turn counter.</td></tr>
+          <tr><td><span class="k">&#9829; HP</span></td><td>Hit points. Hit zero and you flatline. Colour warns as it drops.</td></tr>
+          <tr><td><span class="k">&#9672; COH</span></td><td>Coherence, and its band. The permanent cost of chrome. See &sect;08.</td></tr>
+          <tr><td><span class="k">&#9678; TRACE</span></td><td>How close the net is to finding your body. Persists between runs. See &sect;09.</td></tr>
+          <tr><td><span class="k">&#9650; HEAT</span></td><td>Local attention in this district. High heat means hard responses.</td></tr>
+          <tr><td><span class="k">&#164; credits</span></td><td>Money. The city runs on it.</td></tr>
+          <tr><td class="mono">&#9888; WOUNDED / statuses</td><td>Wound state, active status effects with turns left, and unspent skill points.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Menus are numbered &mdash; type the number and press <span class="kbd">Enter</span>. Type
+      <span class="kbd">b</span> (or just press <span class="kbd">Enter</span> on an empty line) to
+      back out of any menu. Combat and netrunning draw their own framed screens with enemy or node
+      health bars.</p>
+  </section>
+
+  <!-- 02 -->
+  <section id="loop">
+    <h2 class="sec"><span class="num">02</span>The Turn Loop</h2>
+    <p>Verdigris Bay is turn-based, but time only moves when <em>you</em> do something meaningful.
+      Looking at your sheet, checking inventory, or reading the journal are free. The actions that
+      <strong>advance a world turn</strong> are: <span class="chip">explore</span>
+      <span class="chip">travel</span> <span class="chip">net</span> <span class="chip">market</span>
+      <span class="chip">clinic</span> <span class="chip">story</span> <span class="chip">use</span>
+      <span class="chip">wait</span>.</p>
+    <p>On each world turn, in this exact order:</p>
+    <ol class="tight">
+      <li><strong>Status effects tick</strong> &mdash; bleeding and burns deal damage, timed effects count down, a stim wears off into its crash. You can bleed out between fights.</li>
+      <li><strong>Trace decays</strong> &mdash; and if your trace is high enough, consequences may fire (up to a strike team at your door).</li>
+      <li><strong>Heat decays</strong> &mdash; slowly where you're standing, faster in districts you've left.</li>
+      <li><strong>Story triggers re-evaluate</strong> &mdash; the narrative engine checks whether world state has opened a new thread.</li>
+      <li><strong>Random encounter roll</strong> &mdash; weighted by district, heat, and your reputation.</li>
+    </ol>
+    <div class="box note">
+      <span class="lbl">Why the order matters</span>
+      Statuses resolve before encounters, so a wound can drop you before the next fight begins.
+      Story beats are checked before random content, so the plot takes precedence over noise.
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section id="checks">
+    <h2 class="sec"><span class="num">03</span>Checks &amp; Dice</h2>
+    <p class="lead">Every uncertain action resolves the same way. One formula runs the whole game.</p>
+    <pre><code>total = d10 + attribute + skill + situational modifiers
+success if total &ge; DV (Difficulty Value)</code></pre>
+    <h3>Swing dice</h3>
+    <p>The d10 is not flat. A natural <strong>10</strong> explodes: roll again and <em>add</em>,
+      and keep going while you roll 10s. A natural <strong>1</strong> implodes: roll again and
+      <em>subtract</em>. This is the street luck the city runs on &mdash; a desperate amateur can
+      occasionally beat a wall, and a professional can occasionally faceplant.</p>
+    <h3>Margin, criticals and fumbles</h3>
+    <ul class="tight">
+      <li><strong>Margin</strong> is how far you cleared (or missed) the DV. Degree of success matters everywhere: it adds damage, yields more intel, and moves netrun outcomes.</li>
+      <li><strong>Critical</strong> &mdash; the die swung upward <em>and</em> you beat the DV by 5 or more. Exceptional result.</li>
+      <li><strong>Fumble</strong> &mdash; the die swung downward <em>and</em> you missed by 5 or more. It goes badly.</li>
+    </ul>
+    <h3>Difficulty Values</h3>
+    <div class="scroll">
+      <table>
+        <caption>DV bands</caption>
+        <thead><tr><th>Band</th><th class="mono">DV</th><th>Feel</th></tr></thead>
+        <tbody>
+          <tr><td class="k">trivial</td><td class="mono">7</td><td>You'd have to be actively unlucky to miss.</td></tr>
+          <tr><td class="k">easy</td><td class="mono">9</td><td>Most people manage it.</td></tr>
+          <tr><td class="k">routine</td><td class="mono">12</td><td>The baseline. A competent hand clears it most of the time.</td></tr>
+          <tr><td class="k">tricky</td><td class="mono">15</td><td>Takes some training or talent.</td></tr>
+          <tr><td class="k">hard</td><td class="mono">18</td><td>Professional territory.</td></tr>
+          <tr><td class="k">severe</td><td class="mono">22</td><td>Only specialists, and not reliably.</td></tr>
+          <tr><td class="k">nightmare</td><td class="mono">26</td><td>Needs heavy investment or a lucky swing.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><em>Calibration:</em> an unspecialised but capable character (attribute 5, skill 3) averages
+      13.5 on the roll, clearing <span class="k">routine</span> roughly 70% of the time. A specialist
+      (attribute 8, skill 4) clears it almost always.</p>
+  </section>
+
+  <!-- 04 -->
+  <section id="attributes">
+    <h2 class="sec"><span class="num">04</span>Attributes &amp; Skills</h2>
+    <p>Seven attributes, range 1&ndash;10. Every skill is governed by one of them; a check adds the
+      attribute <em>and</em> the skill rank. Cyberware, status effects and your Coherence band can
+      raise or lower an effective attribute, so the number you roll with is not always your base.</p>
+    <div class="scroll">
+      <table>
+        <caption>Attributes</caption>
+        <thead><tr><th class="mono">Attr</th><th>Name</th><th>Covers</th><th>Governs</th></tr></thead>
+        <tbody>
+          <tr><td class="k">REF</td><td>Reflex</td><td>Speed, coordination, trigger discipline</td><td>firearms, melee, dodge, stealth</td></tr>
+          <tr><td class="k">BOD</td><td>Body</td><td>Mass, stamina, how much you can absorb</td><td>heavy&nbsp;weapons, athletics, endurance</td></tr>
+          <tr><td class="k">INT</td><td>Intellect</td><td>Analysis, recall, planning</td><td>streetwise, investigate</td></tr>
+          <tr><td class="k">NRV</td><td>Nerve</td><td>Composure, resistance to fear and pain</td><td>composure</td></tr>
+          <tr><td class="k">PRE</td><td>Presence</td><td>Read people, be believed, be remembered</td><td>persuade, intimidate, deceive</td></tr>
+          <tr><td class="k">TEC</td><td>Tech</td><td>Build it, breach it, keep it running</td><td>electronics, demolitions, medicine, security</td></tr>
+          <tr><td class="k">WIR</td><td>Wire</td><td>Neural bandwidth; how well your brain talks to machines</td><td>intrusion, evasion, signal</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Skills run 0&ndash;10 and are raised with skill points earned at level-up (see &sect;12). You can attempt
+      a check with a skill at rank 0 &mdash; you just lean entirely on the attribute.</p>
+    <div class="box tip">
+      <span class="lbl">Encumbrance</span>
+      Heavy armour applies a penalty to physical skills &mdash; <code>stealth</code>, <code>athletics</code>,
+      <code>dodge</code> and <code>melee</code>. A riot shell keeps you alive and slows you down.
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section id="roles">
+    <h2 class="sec"><span class="num">05</span>Roles</h2>
+    <p>Your role sets your starting attributes, skills, kit and cyberware, and grants a
+      <strong>unique passive</strong>. Roles overlap deliberately &mdash; none is a hard class, and any
+      role can chase any build over time. The passive is the thing only that role gets.</p>
+    <div class="grid2">
+      <div class="card">
+        <h4><span class="role-icon">&#9670;</span> Runner</h4>
+        <div class="stats">WIR 8 &middot; INT 7 &middot; TEC 6</div>
+        <p>Into the network and back out with things that weren't yours. Mostly back out.</p>
+        <p class="pass"><b>Passive:</b> Trace decays 3 points faster per turn out of the net.</p>
+      </div>
+      <div class="card">
+        <h4><span class="role-icon">&#9673;</span> Enforcer</h4>
+        <div class="stats">BOD 8 &middot; REF 7 &middot; NRV 7</div>
+        <p>Somebody has to stand in the doorway. You are expensive, and you are worth it.</p>
+        <p class="pass"><b>Passive:</b> Ignore the first 3 damage from every incoming hit.</p>
+      </div>
+      <div class="card">
+        <h4><span class="role-icon">&#9830;</span> Fixer</h4>
+        <div class="stats">PRE 8 &middot; INT 7 &middot; NRV 6</div>
+        <p>You don't do the job. You know who does, what they charge, and what they owe.</p>
+        <p class="pass"><b>Passive:</b> Start with a contact in every district, and +1 to all reputation gains.</p>
+      </div>
+      <div class="card">
+        <h4><span class="role-icon">&#10050;</span> Techie</h4>
+        <div class="stats">TEC 8 &middot; INT 7 &middot; WIR 6</div>
+        <p>Everything in this city is held together with solder and somebody's patience. Usually yours.</p>
+        <p class="pass"><b>Passive:</b> Repair cyberware integrity and fix gear in the field, without a clinic.</p>
+      </div>
+      <div class="card">
+        <h4><span class="role-icon">&#9672;</span> Medic</h4>
+        <div class="stats">TEC 7 &middot; INT 7 &middot; PRE 6</div>
+        <p>Street doc. Half your patients can't go to a hospital and the other half can't be seen going anywhere.</p>
+        <p class="pass"><b>Passive:</b> Healing items restore 50% more, and can be used mid-combat.</p>
+      </div>
+      <div class="card">
+        <h4><span class="role-icon">&#9656;</span> Scavver</h4>
+        <div class="stats">REF 7 &middot; BOD 6 &middot; INT 6</div>
+        <p>The Drowned Quarter is full of things people left behind when the water came. You have a boat.</p>
+        <p class="pass"><b>Passive:</b> +2 loot rolls per container, and you can strip gear off the dead.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section id="combat">
+    <h2 class="sec"><span class="num">06</span>Combat</h2>
+    <p>Combat is round-based. Initiative (REF + a d10) is rolled once at the start and held for the
+      fight. On your turn you take one action; then every living enemy acts; then end-of-round status
+      effects tick.</p>
+    <h3>Your actions</h3>
+    <ul class="plain">
+      <li><strong>Attack</strong> &mdash; fire or strike with your equipped weapon. Ranged weapons fire up to their rate of fire (ROF) per round, spending loaded ammo. Hit location is rolled randomly (see table).</li>
+      <li><strong>Aimed shot</strong> &mdash; a single, deliberate round to the head at a steep to-hit penalty (&minus;6). If it lands, it's the head location's &times;2 damage and a strong chance to stun. High risk, high reward &mdash; the classic Cyberpunk called shot.</li>
+      <li><strong>Switch weapon</strong> &mdash; swap between the weapons you're carrying, ranged or melee, mid-fight. Shown when you carry more than one. The swap is free: it doesn't cost your action, so you can switch and then act the same round.</li>
+      <li><strong>Reload</strong> &mdash; top up the magazine from your ammo reserve. Costs your action.</li>
+      <li><strong>Use item</strong> &mdash; a consumable or tool mid-fight (healing needs the Medic passive).</li>
+      <li><strong>Flee</strong> &mdash; an opposed athletics check against the fastest enemy. Fail, and everyone gets a free shot at you. Fleeing raises local heat.</li>
+    </ul>
+    <h3>Hit locations</h3>
+    <p>A d10 decides where a hit lands and multiplies its damage. Head shots are lethal but rare on a
+      random roll &mdash; which is what makes the aimed shot worth the penalty.</p>
+    <div class="scroll">
+      <table>
+        <caption>Hit location (d10)</caption>
+        <thead><tr><th class="mono">Roll</th><th>Location</th><th>Damage &times;</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Head</td><td class="mono">&times;2.0</td><td>Chance to stun; jars cyberware</td></tr>
+          <tr><td class="mono">2&ndash;5</td><td>Torso</td><td class="mono">&times;1.0</td><td>Full damage</td></tr>
+          <tr><td class="mono">6&ndash;7</td><td>Arm</td><td class="mono">&times;0.7</td><td>Reduced; may disarm</td></tr>
+          <tr><td class="mono">8&ndash;10</td><td>Leg</td><td class="mono">&times;0.7</td><td>Reduced; may cripple (REF penalty)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>The damage pipeline</h3>
+    <pre><code>weapon dice (+ BOD bonus for melee) + (margin / 4)
+  &rarr; hit-location multiplier
+  &rarr; minus (target armour - weapon AP)
+  &rarr; target HP</code></pre>
+    <p>The <em>margin</em> term is why skill matters past hit-or-miss: a better shooter not only
+      connects more often, they land harder when they do. Weapons in poor condition can
+      <strong>jam</strong> and cost you the round; every attack wears the weapon down slightly.</p>
+  </section>
+
+  <!-- 07 -->
+  <section id="health">
+    <h2 class="sec"><span class="num">07</span>Damage, Armour &amp; Wounds</h2>
+    <h3>Armour</h3>
+    <p>Armour has <strong>Stopping Power (SP)</strong>, subtracted from incoming damage before it
+      reaches your HP. A weapon's <strong>Armour Penetration (AP)</strong> is subtracted from your SP
+      first. Armour <strong>ablates</strong>: it loses condition as it soaks hits, and shot-up armour
+      stops less. Some damage &mdash; fire, poison, hazards, bleeding &mdash; <strong>bypasses armour entirely</strong>.</p>
+    <div class="scroll">
+      <table>
+        <caption>Armour</caption>
+        <thead><tr><th>Armour</th><th class="mono">SP</th><th class="mono">Penalty</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Lined Longcoat</td><td class="mono">4</td><td class="mono">0</td><td>Looks like a coat. Is mostly a coat.</td></tr>
+          <tr><td>Plate Carrier Vest</td><td class="mono">8</td><td class="mono">&minus;1</td><td>Standard for a crew expecting trouble.</td></tr>
+          <tr><td>Halcyon Executive Weave</td><td class="mono">10</td><td class="mono">0</td><td>A very good suit that stops rifle rounds.</td></tr>
+          <tr><td>CRA Riot Shell</td><td class="mono">13</td><td class="mono">&minus;3</td><td>You will survive. You will not be quick.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Wound states</h3>
+    <p>Being hurt makes everything harder. As your HP drops, a penalty applies to <em>your own</em>
+      actions (attacks and skill checks). It does not cascade into your defence, so a bad wound is a
+      real setback but never an automatic death spiral.</p>
+    <div class="scroll">
+      <table>
+        <caption>Wound states</caption>
+        <thead><tr><th>State</th><th>HP</th><th>Effect on your checks</th></tr></thead>
+        <tbody>
+          <tr><td class="k" style="color:var(--green)">Steady</td><td class="mono">&gt; 50%</td><td>No penalty.</td></tr>
+          <tr><td class="k" style="color:var(--amber)">Wounded</td><td class="mono">&le; 50%</td><td>&minus;1 to your actions.</td></tr>
+          <tr><td class="k" style="color:var(--red)">Mortal</td><td class="mono">&le; 25%</td><td>&minus;2 to your actions.</td></tr>
+          <tr><td class="k" style="color:var(--red)">Flatline</td><td class="mono">0</td><td>The run ends.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Bleeding &amp; heavy trauma</h3>
+    <ul class="tight">
+      <li>A hit of <strong>8+ damage</strong> can open a <span class="chip red">bleeding</span> wound: damage every turn until treated. A Trauma Kit stops it.</li>
+      <li>A hit of <strong>10+ damage</strong> jars your cyberware, dropping its integrity.</li>
+      <li>Other status effects you'll meet: <span class="chip">stunned</span> <span class="chip">burning</span> <span class="chip">poisoned</span> <span class="chip">suppressed</span> <span class="chip">stimmed</span> &rarr; <span class="chip">crash</span> <span class="chip">emp_locked</span> <span class="chip">dissociated</span> <span class="chip">drowning</span>.</li>
+    </ul>
+    <div class="box warn">
+      <span class="lbl">Two ways to die</span>
+      HP zero is the obvious one. <strong>Coherence</strong> zero is the other &mdash; and it is permanent
+      and self-inflicted. See the next section before you buy your third implant.
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section id="chrome">
+    <h2 class="sec"><span class="num">08</span>Cyberware &amp; Coherence</h2>
+    <p class="lead">Chrome is the most direct route to power in the Bay, and its most dangerous
+      resource sink. A Coherence build and a chrome build are genuinely different playthroughs &mdash; and
+      the ending you can reach depends partly on which you chose.</p>
+    <h3>Coherence</h3>
+    <p>Coherence starts at 100 and only ever goes <em>down</em>, permanently. Each implant inflicts
+      its <strong>strain</strong> value as a permanent reduction &mdash; it's the integration between your
+      nervous system and the hardware bolted into it. As Coherence falls you drift out of yourself.</p>
+    <div class="scroll">
+      <table>
+        <caption>Coherence bands</caption>
+        <thead><tr><th class="mono">Range</th><th>Band</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">90&ndash;100</td><td class="k" style="color:var(--green)">Integrated</td><td>No penalty.</td></tr>
+          <tr><td class="mono">70&ndash;89</td><td class="k">Drifting</td><td>&minus;1 PRE.</td></tr>
+          <tr><td class="mono">50&ndash;69</td><td class="k" style="color:var(--amber)">Fraying</td><td>&minus;1 PRE, &minus;1 NRV; intrusive sensory noise.</td></tr>
+          <tr><td class="mono">30&ndash;49</td><td class="k" style="color:var(--amber)">Dissociating</td><td>&minus;2 PRE, &minus;2 NRV; forced composure checks under stress.</td></tr>
+          <tr><td class="mono">10&ndash;29</td><td class="k" style="color:var(--red)">Fugue</td><td>&minus;3 PRE, &minus;3 NRV; possible hostile misidentification.</td></tr>
+          <tr><td class="mono">0&ndash;9</td><td class="k" style="color:var(--red)">Flatline</td><td>The run ends.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Recovering Coherence is rare and expensive: downtime, therapy, or pulling chrome back out.
+      Removing an implant returns only <strong>half</strong> its strain &mdash; the scar tissue is both
+      literal and not. Back-alley installs are cheaper but cost extra Coherence and start the implant
+      pre-degraded.</p>
+    <h3>Integrity &amp; misfire</h3>
+    <p>Separate from Coherence, each implant has an <strong>integrity</strong> from 0&ndash;100. It drops
+      when you take damage, use an implant's active ability, dive the net, or eat an EMP.</p>
+    <ul class="tight">
+      <li>Below <strong>50</strong> integrity: the implant's attribute bonus is halved.</li>
+      <li>Below <strong>25</strong>: it can <strong>misfire</strong> on use.</li>
+      <li>At <strong>0</strong>: it goes <strong>offline</strong> until repaired (clinic, toolkit, or Techie passive).</li>
+    </ul>
+    <div class="box note">
+      <span class="lbl">Slots</span>
+      One implant per slot &mdash; head, eyes, spine, throat, arm, gland &mdash; except <strong>body</strong>,
+      which takes three. A neural interface port is required before you can netrun at all.
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section id="net">
+    <h2 class="sec"><span class="num">09</span>Netrunning</h2>
+    <p>To dive you need a <strong>neural interface port</strong> installed and a <strong>deck</strong>
+      equipped. A host is a stack of nodes you descend through, one at a time. At each node you choose
+      how to get past what's guarding it.</p>
+    <h3>The trace clock</h3>
+    <p>Trace is a 0&ndash;100 meter that <strong>persists between runs</strong>. It does not reset when you
+      jack out; it decays slowly over world turns. Every run raises a clock that follows you back into
+      meatspace.</p>
+    <div class="scroll">
+      <table>
+        <caption>Trace bands</caption>
+        <thead><tr><th class="mono">Range</th><th>Band</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">0&ndash;24</td><td class="k" style="color:var(--green)">Clean</td><td>Nothing.</td></tr>
+          <tr><td class="mono">25&ndash;49</td><td class="k">Flagged</td><td>CRA encounter weight rises.</td></tr>
+          <tr><td class="mono">50&ndash;74</td><td class="k" style="color:var(--amber)">Tracked</td><td>Hostile runners may counter-dive you.</td></tr>
+          <tr><td class="mono">75&ndash;94</td><td class="k" style="color:var(--red)">Pinned</td><td>A strike team is being dispatched.</td></tr>
+          <tr><td class="mono">95&ndash;100</td><td class="k" style="color:var(--red)">Burned</td><td>They have your address. They come.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Node actions</h3>
+    <ul class="plain">
+      <li><strong>Probe</strong> &mdash; read what's at a node without engaging it. Small trace.</li>
+      <li><strong>Crack</strong> &mdash; an intrusion check to take the node. Medium trace.</li>
+      <li><strong>Stealth past</strong> &mdash; bypass the ICE entirely on a hard check. Low trace.</li>
+      <li><strong>Attack ICE</strong> &mdash; fight the countermeasure with a loaded attack program.</li>
+      <li><strong>Pull payload</strong> &mdash; extract a cracked node's contents (data, credits).</li>
+      <li><strong>Descend</strong> &mdash; move to the next node deeper in the host.</li>
+      <li><strong>Cauterise</strong> &mdash; emergency trace purge, one use per run (needs the program).</li>
+      <li><strong>Jack out</strong> &mdash; leave, keeping everything you extracted so far.</li>
+    </ul>
+    <h3>Deck buffer &amp; ICE</h3>
+    <p>Your deck's <strong>buffer</strong> is your health in the net. ICE attacks deplete it. When the
+      buffer hits zero, further ICE damage carries through the neural port into your <em>real HP</em>,
+      and <strong>lethal (black) ICE</strong> degrades your cyberware on every hit. A cheap deck isn't
+      just slower &mdash; it's the only thing between your brain and a Verdict.</p>
+    <div class="grid2">
+      <div class="scroll">
+        <table>
+          <caption>Decks</caption>
+          <thead><tr><th>Deck</th><th class="mono">Buffer</th><th class="mono">Shield</th><th class="mono">Speed</th></tr></thead>
+          <tbody>
+            <tr><td>Burner Deck</td><td class="mono">5</td><td class="mono">1</td><td class="mono">0</td></tr>
+            <tr><td>Meridian Casebook</td><td class="mono">8</td><td class="mono">2</td><td class="mono">1</td></tr>
+            <tr><td>Silvert Nine</td><td class="mono">12</td><td class="mono">4</td><td class="mono">2</td></tr>
+            <tr><td>Tessellate Prime</td><td class="mono">18</td><td class="mono">6</td><td class="mono">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="scroll">
+        <table>
+          <caption>ICE</caption>
+          <thead><tr><th>ICE</th><th class="mono">Tier</th><th class="mono">HP</th><th class="mono">Atk</th><th>Lethal</th></tr></thead>
+          <tbody>
+            <tr><td>Watchdog</td><td class="mono">1</td><td class="mono">8</td><td class="mono">3</td><td>&mdash;</td></tr>
+            <tr><td>Tallyman</td><td class="mono">2</td><td class="mono">10</td><td class="mono">4</td><td>&mdash;</td></tr>
+            <tr><td>Mastiff</td><td class="mono">2</td><td class="mono">14</td><td class="mono">6</td><td>&mdash;</td></tr>
+            <tr><td>Verdict</td><td class="mono">3</td><td class="mono">22</td><td class="mono">9</td><td class="k" style="color:var(--red)">&#9760; yes</td></tr>
+            <tr><td>Ossifier</td><td class="mono">4</td><td class="mono">30</td><td class="mono">12</td><td class="k" style="color:var(--red)">&#9760; yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p>Attack and stealth programs (Hammer, Lancet, Veil, Mirror, Siphon, Cauterise) shape how a run
+      goes &mdash; some break ICE, some suppress trace, some pull loot faster. <strong>Veil</strong> reduces
+      the trace you accumulate while it's loaded.</p>
+  </section>
+
+  <!-- 10 -->
+  <section id="world">
+    <h2 class="sec"><span class="num">10</span>Factions, Reputation &amp; Heat</h2>
+    <h3>The six</h3>
+    <div class="scroll">
+      <table>
+        <caption>Factions</caption>
+        <thead><tr><th>Faction</th><th>Type</th><th>What they are</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Halcyon Vertex</td><td>Corporate</td><td>Biotech combine. Owns the Terraces, the water rights, and the coroner's office.</td></tr>
+          <tr><td class="k">The Ossuary</td><td>Cult</td><td>Believe the body is a draft. Best chrome in the Bay, installed as a sacrament.</td></tr>
+          <tr><td class="k">Grey Meridian</td><td>Network</td><td>A netrunner collective that behaves like a library and prices like a cartel.</td></tr>
+          <tr><td class="k">Ironvein Syndicate</td><td>Criminal</td><td>Guns, cargo, and the Gantry docks. Old money nobody made launder itself.</td></tr>
+          <tr><td class="k">Civic Reclamation Authority</td><td>State</td><td>Police with armoured vehicles and a mandate to "reclaim" districts behind on assessments.</td></tr>
+          <tr><td class="k">The Lowline</td><td>Community</td><td>Mutual aid and tidal farming in the flooded districts. Not a gang. Acts like one if you touch their pumps.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Reputation &amp; friction</h3>
+    <p>Standing with each faction runs from &minus;100 (blood feud) to +100 (made), through the tiers
+      <span class="chip red">hostile</span> <span class="chip">wary</span>
+      <span class="chip">neutral</span> <span class="chip green">trusted</span>
+      <span class="chip cyan">inner</span>. The catch is <strong>friction</strong>: gaining standing
+      with one faction costs you standing with its rivals. Help the Lowline and Halcyon notices. You
+      cannot max everyone &mdash; and where you end up gates which endings you can reach.</p>
+    <div class="box note">
+      <span class="lbl">Asymmetry</span>
+      Friction cascades at full rate when you <em>gain</em> standing, and half rate when you lose it.
+      The city is quicker to notice you helping an enemy than to forgive you hurting one.
+    </div>
+    <h3>Heat</h3>
+    <p>Heat is per-district attention, 0&ndash;100. Killing people, fleeing fights, and drawing the CRA all
+      raise it. High heat raises encounter frequency and the odds those encounters are a hard
+      response. It decays on its own &mdash; fastest in districts you've left. Sometimes the move is simply
+      to leave town for a few turns.</p>
+  </section>
+
+  <!-- 11 -->
+  <section id="city">
+    <h2 class="sec"><span class="num">11</span>The City &amp; Gear</h2>
+    <h3>Districts</h3>
+    <div class="scroll">
+      <table>
+        <caption>The six districts</caption>
+        <thead><tr><th>District</th><th class="mono">Sec</th><th class="mono">Wealth</th><th>Control</th><th>Character</th></tr></thead>
+        <tbody>
+          <tr><td class="k">The Terraces</td><td class="mono">9</td><td class="mono">9</td><td>Halcyon</td><td>Stacked arcology decks, filtered air, a checkpoint on every ramp.</td></tr>
+          <tr><td class="k">Sable Row</td><td class="mono">5</td><td class="mono">6</td><td>Ironvein</td><td>Bars, clinics, ring fights. The only neutral ground in the Bay.</td></tr>
+          <tr><td class="k">The Kiln</td><td class="mono">6</td><td class="mono">5</td><td>Halcyon</td><td>Foundries and fab shops running three shifts. Hot, loud, toxic.</td></tr>
+          <tr><td class="k">The Gantry</td><td class="mono">7</td><td class="mono">7</td><td>Ironvein</td><td>Container cranes and bonded warehouses. Smuggling, open sightlines.</td></tr>
+          <tr><td class="k">The Drowned Quarter</td><td class="mono">2</td><td class="mono">3</td><td>Lowline</td><td>Twelve flooded blocks. Salvage, tides, and the dark below the waterline.</td></tr>
+          <tr><td class="k">The Static Fields</td><td class="mono">3</td><td class="mono">2</td><td>Ossuary</td><td>Squats under a dead broadcast array. Nothing wireless works right.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>District wealth drives loot quality and prices; security drives how hard the local response is.
+      <strong>Explore</strong> to find and clear procedurally generated sites, or generate a new lead.
+      Each site has a security rating and a loot tier.</p>
+    <h3>Weapons</h3>
+    <p>Weapons roll d6 damage; ROF is shots per round; AP cuts through armour. A sample of the range:</p>
+    <div class="scroll">
+      <table>
+        <caption>Selected weapons</caption>
+        <thead><tr><th>Weapon</th><th class="mono">Damage</th><th class="mono">AP</th><th class="mono">ROF</th><th class="mono">Mag</th></tr></thead>
+        <tbody>
+          <tr><td>Wexler .22 Holdout</td><td class="mono">2d6</td><td class="mono">0</td><td class="mono">2</td><td class="mono">6</td></tr>
+          <tr><td>Corriveau M9 Service</td><td class="mono">2d6</td><td class="mono">1</td><td class="mono">2</td><td class="mono">15</td></tr>
+          <tr><td>Sligo Chatterbox (MP)</td><td class="mono">2d6</td><td class="mono">0</td><td class="mono">4</td><td class="mono">32</td></tr>
+          <tr><td>Tidewater Breachgun</td><td class="mono">4d6</td><td class="mono">0</td><td class="mono">1</td><td class="mono">5</td></tr>
+          <tr><td>Halcyon Pattern-7 Carbine</td><td class="mono">3d6</td><td class="mono">2</td><td class="mono">3</td><td class="mono">30</td></tr>
+          <tr><td>Ossuary Votive Rail</td><td class="mono">3d6</td><td class="mono">5</td><td class="mono">1</td><td class="mono">4</td></tr>
+          <tr><td>Monofilament Cleaver</td><td class="mono">3d6</td><td class="mono">4</td><td class="mono">1</td><td class="mono">&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Markets and clinics live in every district. Markets buy and sell gear, ammo and implants;
+      clinics heal you, and install, remove or repair cyberware (proper or back-alley).</p>
+  </section>
+
+  <!-- 12 -->
+  <section id="progress">
+    <h2 class="sec"><span class="num">12</span>Advancement &amp; Endings</h2>
+    <h3>XP, levels, skill points</h3>
+    <p>You earn XP from fights, discoveries and social wins. XP thresholds scale quadratically:
+      reaching level <em>n</em> needs <code>n&sup2; &times; 100</code> XP. Each level raises your max HP and
+      grants <strong>3 skill points</strong>, spent with the <code>train</code> command to raise
+      skills (cap 10 each).</p>
+    <h3>The story</h3>
+    <p>The narrative is a graph of nodes, not a script. Every turn, the engine checks whether world
+      state &mdash; where you went, who you angered, how much chrome you took, how hot you ran &mdash; has opened a
+      new thread. Open available threads with the <code>story</code> command. The same world can reach
+      different beats depending entirely on how you played it, and there are multiple reachable
+      endings. Some are gated on Coherence: the "you're still yourself" endings need you intact.</p>
+    <div class="box tip">
+      <span class="lbl">Replayability</span>
+      Six roles, a friction-driven political map you can't fully satisfy, a Coherence-vs-chrome build
+      axis, and a story pulled by world state rather than pushed by a fixed order. No two runs line up.
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section id="commands">
+    <h2 class="sec"><span class="num">13</span>Command Reference</h2>
+    <p>Type a command at the prompt. Actions marked <span class="chip amber">turn</span> advance the
+      world; the rest are free.</p>
+    <div class="scroll">
+      <table>
+        <caption>Commands</caption>
+        <thead><tr><th class="mono">Command</th><th>Does</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="k">look / l</td><td>Describe where you are.</td><td></td></tr>
+          <tr><td class="k">status / s</td><td>Your full character sheet.</td><td></td></tr>
+          <tr><td class="k">inv / i</td><td>Inventory and installed cyberware.</td><td></td></tr>
+          <tr><td class="k">rep / r</td><td>Faction standing.</td><td></td></tr>
+          <tr><td class="k">journal / j</td><td>Recent event log.</td><td></td></tr>
+          <tr><td class="k">explore / e</td><td>Find and search sites in this district.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">travel / t</td><td>Change district.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">net / n</td><td>Dive the local network.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">market / m</td><td>Buy and sell.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">clinic / c</td><td>Healing and cyberware.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">story</td><td>Open narrative threads.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">train</td><td>Spend skill points.</td><td></td></tr>
+          <tr><td class="k">equip &lt;id&gt;</td><td>Equip an item by its inventory id.</td><td></td></tr>
+          <tr><td class="k">use &lt;id&gt;</td><td>Use a consumable by id.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">wait / w</td><td>Pass a turn.</td><td><span class="chip amber">turn</span></td></tr>
+          <tr><td class="k">theme</td><td>Change the UI theme (saved with the character).</td><td></td></tr>
+          <tr><td class="k">menu</td><td>Open the menu: resume, change theme, save, or save and quit. Same as <span class="kbd">Ctrl+C</span>.</td><td></td></tr>
+          <tr><td class="k">help</td><td>The command list.</td><td></td></tr>
+          <tr><td class="k">save</td><td>Write to disk (it also autosaves).</td><td></td></tr>
+          <tr><td class="k">quit / q</td><td>Save and exit.</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box">
+      <span class="lbl">First ten minutes</span>
+      <ol class="tight" style="margin-bottom:0">
+        <li><code>status</code> and <code>inv</code> &mdash; learn your sheet and kit.</li>
+        <li><code>look</code> &mdash; read your district and who controls it.</li>
+        <li><code>explore</code> a low-security site, clear it, take the loot.</li>
+        <li><code>story</code> whenever a new thread appears in the HUD.</li>
+        <li>Watch <strong>Heat</strong> and <strong>Trace</strong>. When either climbs, change districts and let it cool.</li>
+        <li>Buy chrome deliberately. Every implant is Coherence you never get fully back.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>Verdigris Bay</strong> is an original work. The city, its six factions, every weapon,
+      implant, program and the whole story arc are written for this project. It shares only the
+      cyberpunk genre's common mechanical vocabulary &mdash; attribute + skill + die versus a difficulty
+      number, hit locations, armour as damage reduction, augmentation with a psychological cost, a
+      trace clock during intrusion &mdash; with the tabletop tradition it's built in the spirit of. Game
+      systems aren't copyrightable; these particular numbers, names and bands are original.</p>
+    <p style="margin-top:14px; color:var(--muted)">Run it: <code>python3 play.py</code> &middot; Now go down to the water.</p>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    var root = document.documentElement;
+    function current() {
+      var set = root.getAttribute('data-theme');
+      if (set) return set;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    btn.addEventListener('click', function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      btn.textContent = next === 'dark' ? '\u25D1 light' : '\u25D0 dark';
+    });
+  })();
+</script>
+</body>
+</html>
