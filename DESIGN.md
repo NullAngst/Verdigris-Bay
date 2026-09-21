@@ -32,17 +32,6 @@ This engine ships with **entirely original content**. The city, the six
 factions, every weapon, implant, program and the whole narrative arc are
 written for this project.
 
-The uploaded PDFs are commercial rulebooks (R. Talsorian's *Cyberpunk 2013 /
-2020 / RED / Night City*, Steve Jackson Games' *GURPS Cyberpunk*). Their
-settings, lore, gear lists and stat tables are copyrighted expression and are
-not reproduced here in any form.
-
-What *is* shared with those books is the genre's common mechanical vocabulary
-— attribute + skill + die versus a difficulty number, hit locations, armour as
-damage reduction, augmentation carrying a psychological cost, a trace clock
-during intrusion. Game systems are not copyrightable, and these particular
-implementations, numbers and band names are original.
-
 If you want to build on the licensed setting specifically, R. Talsorian
 publishes a **Cyberpunk RED Homebrew Content license**; read it directly, as
 it governs what you may distribute.
