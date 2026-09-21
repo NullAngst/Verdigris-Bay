@@ -362,7 +362,7 @@ python3 play.py mysave.db --seed 42  <span style="color:var(--muted)"># reproduc
     <p>Run with no arguments and you get a <strong>character browser</strong>: every saved run,
       listed with its name, handle, role, level, district, turn, difficulty and whether it's still
       alive. Pick one to load it, or start a new character. New characters are saved under a
-      <code>saves/</code> folder, one file each, named after the character. The game autosaves as you
+      <code>saves/</code> folder, one file each, named after the character. (The downloadable executables keep saves in your user data folder instead; the README lists the exact paths.) The game autosaves as you
       play; you never have to remember to.</p>
     <div class="box tip">
       <span class="lbl">Leaving the game</span>
@@ -378,6 +378,7 @@ python3 play.py mysave.db --seed 42  <span style="color:var(--muted)"># reproduc
         <li><code>NO_COLOR=1</code> &mdash; turn off all colour (monochrome text).</li>
         <li><code>VERDIGRIS_ASCII=1</code> &mdash; use the plain ASCII glyph set instead of Unicode.</li>
         <li><code>VERDIGRIS_FORCE_COLOR=1</code> &mdash; force colour even when output is piped.</li>
+        <li><code>VERDIGRIS_NO_CLEAR=1</code>: stop the screen clearing between commands.</li>
       </ul>
       Colour is disabled automatically when output is not a terminal or when <code>TERM=dumb</code>.
       You can also pick the <strong>Mono</strong> theme in-game for the same effect.

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Verdigris Bay
+GenericName=Cyberpunk RPG
+Comment=A procedurally generated cyberpunk survival RPG
+Exec=verdigris-bay
+Icon=verdigris-bay
+Terminal=true
+Categories=Game;RolePlaying;
+Keywords=cyberpunk;rpg;terminal;roguelike;

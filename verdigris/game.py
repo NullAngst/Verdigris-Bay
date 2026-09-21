@@ -503,6 +503,8 @@ def run_combat(db: Database, dice: Dice, char: Character,
                 eqm = "  " + ui.g("check") if w["equipped"] else ""
                 labels.append(f"{w['name']}{tag}{eqm}")
             wi = menu(labels, "Equip")
+            ui.clear_screen()
+            print(ui.scene_frame("combat", f"combat {ui.g('sep')} {context}"))
             if wi >= 0:
                 ok, msg = char.equip(all_weapons[wi]["id"])
                 print("  " + ui.color(msg, "cyan"))
@@ -523,6 +525,10 @@ def run_combat(db: Database, dice: Dice, char: Character,
         else:
             continue
 
+        # Fresh screen per round: frame, what just happened, then the next
+        # round's status and menu below it.
+        ui.clear_screen()
+        print(ui.scene_frame("combat", f"combat {ui.g('sep')} {context}"))
         for line in fight.drain_log():
             print("  " + ui.color(line, "ink"))
 
@@ -622,6 +628,8 @@ def run_netrun(db: Database, dice: Dice, char: Character) -> None:
         elif label == "Jack out" or choice < 0:
             run.jack_out()
 
+        ui.clear_screen()
+        print(ui.scene_frame("netrun", f"dive {ui.g('sep')} {run.host['name']}"))
         for line in run.drain_log():
             print("  " + ui.color(line, "cyan"))
 
@@ -885,7 +893,31 @@ def look(db: Database, char: Character) -> None:
 # ==========================================================================
 # SAVES, THEME, DIFFICULTY, MENU
 # ==========================================================================
-SAVE_DIR = "saves"
+def _default_save_dir() -> str:
+    """Where saves live.
+
+    From source: ./saves, next to play.py, as before.
+    Frozen executable: the platform's per-user data directory, because the
+    working directory of a double-clicked binary is unpredictable (home on
+    macOS, possibly read-only on Windows).
+    VERDIGRIS_SAVE_DIR overrides both."""
+    env = os.environ.get("VERDIGRIS_SAVE_DIR")
+    if env:
+        return env
+    if not getattr(sys, "frozen", False):
+        return "saves"
+    home = os.path.expanduser("~")
+    if os.name == "nt":
+        base = os.environ.get("APPDATA") or home
+        return os.path.join(base, "VerdigrisBay", "saves")
+    if sys.platform == "darwin":
+        return os.path.join(home, "Library", "Application Support",
+                            "VerdigrisBay", "saves")
+    base = os.environ.get("XDG_DATA_HOME") or os.path.join(home, ".local", "share")
+    return os.path.join(base, "verdigris-bay", "saves")
+
+
+SAVE_DIR = _default_save_dir()
 
 
 def _slugify(text: str) -> str:
@@ -898,9 +930,10 @@ def list_save_paths() -> list[str]:
     paths: list[str] = []
     if os.path.isdir(SAVE_DIR):
         paths += sorted(glob.glob(os.path.join(SAVE_DIR, "*.save")))
-    for p in sorted(glob.glob("*.save")):        # legacy top-level saves
-        if p not in paths:
-            paths.append(p)
+    if not getattr(sys, "frozen", False):
+        for p in sorted(glob.glob("*.save")):    # legacy top-level saves
+            if p not in paths:
+                paths.append(p)
     return paths
 
 
@@ -1004,6 +1037,7 @@ def startup_browser(seed: int | None) -> tuple[str, str] | None:
     Show saved characters and let the player load one or start new.
     Returns (mode, path) where mode is 'load' or 'new', or None to quit.
     """
+    ui.clear_screen()
     print(ui.title_screen())
     while True:
         summaries = [s for s in (save_summary(p) for p in list_save_paths()) if s]
@@ -1059,6 +1093,7 @@ def start_new_game(seed: int | None) -> tuple[Database, Dice, Character, str] | 
     char = create_character(db, dice, difficulty=difficulty, name=name, handle=handle)
     worldgen.ensure_locations(db, dice, "sable_row")
 
+    ui.clear_screen()
     header("sable row", kind="travel")
     sayc(content.DISTRICTS["sable_row"]["blurb"], "ink")
     print("\n" + ui.dim("  Type ") + ui.color("help", "cyan", bold=True)
@@ -1077,6 +1112,7 @@ def load_game(path: str, seed: int | None) -> tuple[Database, Dice, Character, s
 
     char = Character(db, dice)
     quests.install_arc(db)
+    ui.clear_screen()
     print(ui.title_screen())
     print("\n" + ui.color("  Welcome back, ", "ink")
           + ui.color(char.row["handle"], "magenta", bold=True)
@@ -1120,6 +1156,11 @@ def run_loop(db: Database, dice: Dice, char: Character, save_path: str) -> str:
             parts = raw.split()
             cmd = parts[0].lower() if parts else ""
             arg = parts[1] if len(parts) > 1 else ""
+
+            # New screen per command: the result of this action stays visible
+            # until the next one is entered.
+            if cmd:
+                ui.clear_screen()
 
             ticks = False
 

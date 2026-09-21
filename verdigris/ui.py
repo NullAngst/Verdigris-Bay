@@ -40,6 +40,28 @@ def _stream_is_tty() -> bool:
         return False
 
 
+def _enable_windows_vt() -> bool:
+    """Turn on ANSI escape processing in the Windows console (Win10 1511+).
+    Without this, a double-clicked .exe running in conhost prints raw escape
+    codes instead of colour. Returns True if VT mode is active."""
+    if os.name != "nt":
+        return False
+    try:
+        import ctypes
+        k32 = ctypes.windll.kernel32
+        handle = k32.GetStdHandle(-11)          # STD_OUTPUT_HANDLE
+        mode = ctypes.c_uint32()
+        if not k32.GetConsoleMode(handle, ctypes.byref(mode)):
+            return False
+        # ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        return bool(k32.SetConsoleMode(handle, mode.value | 0x0001 | 0x0004))
+    except Exception:
+        return False
+
+
+_WIN_VT = _enable_windows_vt()
+
+
 def _want_color() -> bool:
     if os.environ.get("NO_COLOR") is not None:
         return False
@@ -49,6 +71,8 @@ def _want_color() -> bool:
         return False
     if os.environ.get("VERDIGRIS_FORCE_COLOR"):
         return True
+    if os.name == "nt" and not _WIN_VT:
+        return False                            # legacy console: no ANSI
     return _stream_is_tty()
 
 
@@ -57,6 +81,8 @@ def _color_depth() -> int:
     ct = os.environ.get("COLORTERM", "").lower()
     if "truecolor" in ct or "24bit" in ct:
         return 24
+    if os.name == "nt" and _WIN_VT:
+        return 24                               # VT-mode consoles do truecolor
     term = os.environ.get("TERM", "").lower()
     if "256" in term:
         return 8
@@ -80,6 +106,29 @@ try:
 except Exception:
     _TERM_COLS = 80
 WIDTH = max(60, min(84, _TERM_COLS - 1))
+
+
+def _want_clear() -> bool:
+    if os.environ.get("VERDIGRIS_NO_CLEAR"):
+        return False
+    if os.environ.get("TERM", "") == "dumb":
+        return False
+    if os.name == "nt" and not _WIN_VT:
+        return False
+    return _stream_is_tty()
+
+
+# Screen clearing is independent of colour: the Mono theme still clears.
+# Off automatically when output is piped, so logs and tests stay intact.
+CLEAR = _want_clear()
+
+
+def clear_screen() -> None:
+    """Wipe the visible screen and home the cursor. Scrollback is left alone,
+    so earlier turns are still reachable by scrolling up."""
+    if CLEAR:
+        sys.stdout.write("\x1b[H\x1b[2J")
+        sys.stdout.flush()
 
 
 # ==========================================================================
