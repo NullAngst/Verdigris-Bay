@@ -1,0 +1,98 @@
+name: Build executables
+
+# Runs on:
+#  - every push to main: builds all platforms, downloadable under Artifacts
+#  - any tag starting with v (v1.0.0, v0.3.1, ...): builds and publishes a Release
+#    (creating a Release in the GitHub web UI creates the tag, which counts)
+#  - manual trigger from the Actions tab: builds, uploads artifacts, no Release
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write            # needed to create the Release on tag builds
+
+jobs:
+  test:
+    name: Smoke tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tests/smoke.py
+
+  build:
+    name: Build ${{ matrix.label }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows-x64
+          - os: ubuntu-24.04
+            label: linux-x64
+          - os: macos-latest
+            label: macos-arm64
+          - os: macos-15-intel
+            label: macos-x64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        run: python -m pip install "pyinstaller>=6.10,<7"
+
+      - name: Build
+        run: |
+          ICON=()
+          if [ "$RUNNER_OS" = "Windows" ]; then ICON=(--icon assets/icon.ico); fi
+          pyinstaller play.py \
+            --onefile --console \
+            --name verdigris-bay \
+            "${ICON[@]}" \
+            --clean --noconfirm
+
+      - name: Launch check (start and quit from the browser)
+        env:
+          VERDIGRIS_SAVE_DIR: ${{ runner.temp }}/vb-saves
+        run: |
+          EXE=dist/verdigris-bay
+          [ "$RUNNER_OS" = "Windows" ] && EXE=dist/verdigris-bay.exe
+          # Empty save dir -> browser shows New / Theme / Quit; "3" quits.
+          printf '3\n' | "$EXE"
+
+      - name: Package
+        run: python packaging/package.py "${{ matrix.label }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verdigris-bay-${{ matrix.label }}
+          path: release/verdigris-bay-${{ matrix.label }}.*
+          if-no-files-found: error
+
+  release:
+    name: Publish Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
