@@ -201,39 +201,3 @@ python3 tests/smoke.py
 ```
 
 The suite runs about 110 assertions across the dice, rules, world generation, combat, netrunning and narrative systems, plus a soak test that plays 500 turns as each of the six roles and checks that nothing throws.
-
----
-
-## Building executables
-
-Builds are automated with GitHub Actions in `.github/workflows/build.yml`. The workflow runs the smoke tests, then builds a single-file executable with [PyInstaller](https://pyinstaller.org) on Windows, Linux, macOS Apple Silicon and macOS Intel, checks that each one launches and quits cleanly, and packages it with the docs.
-
-To publish a release, push a version tag:
-
-```sh
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-The four archives are attached to a new GitHub Release with generated notes. To build without releasing, open the Actions tab, pick **Build executables**, and use **Run workflow**; the archives appear as downloadable artifacts on that run.
-
-To build locally for your own platform:
-
-```sh
-python3 -m pip install pyinstaller
-pyinstaller play.py --onefile --console --name verdigris-bay --clean --noconfirm
-# add --icon assets/icon.ico on Windows
-python3 packaging/package.py linux-x64    # optional: produce the release archive
-```
-
-PyInstaller does not cross-compile. Each platform's binary has to be built on that platform, which is why CI uses a runner per target.
-
-The icon is generated, not hand-drawn. Edit `packaging/make_icon.py` and run it (it needs Pillow) to regenerate every size and format in `assets/`. Pillow is a build-time tool only; the game never imports it.
-
-## Source material and license
-
-This project ships with entirely original content. The city, the factions, every weapon, implant and program, and the whole narrative arc are written for it.
-
-The genre's shared mechanical vocabulary (attribute plus skill plus die against a difficulty number, hit locations, armour as damage reduction, augmentation carrying a psychological cost, a trace clock during intrusion) is common to many cyberpunk tabletop systems. Game systems are not copyrightable, and these particular numbers, names and implementations are original. No copyrighted setting, lore or stat block from any commercial rulebook is reproduced here.
-
-The code does not ship with a license file yet. Add one before publishing if you want to set terms for reuse. If you plan to build on a specific licensed setting, read that publisher's terms directly, since they govern what you may distribute.
